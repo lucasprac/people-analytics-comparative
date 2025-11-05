@@ -4,38 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>People Analytics - Análise Comparativa</title>
-  <style>
-    body{font-family:Inter,Arial,Helvetica,sans-serif;margin:0;background:#0b1020;color:#e5e7eb}
-    header{padding:16px 24px;background:#0f172a;border-bottom:1px solid #1f2937;position:sticky;top:0}
-    h1{margin:0;font-size:18px}
-    .container{padding:24px;max-width:1200px;margin:0 auto}
-    .grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
-    .card{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:16px}
-    .col-3{grid-column:span 3}
-    .col-4{grid-column:span 4}
-    .col-6{grid-column:span 6}
-    .col-12{grid-column:span 12}
-    .kpi{font-size:26px;font-weight:800}
-    .kpi-sub{font-size:12px;color:#94a3b8}
-    .section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .tabs{display:flex;gap:8px}
-    .tab{padding:8px 12px;border:1px solid #334155;border-radius:999px;cursor:pointer;color:#cbd5e1}
-    .tab.active{background:#1d4ed8;border-color:#1d4ed8;color:white}
-    .upload{display:flex;gap:8px;align-items:center}
-    input[type=file]{background:#0b1020;color:#cbd5e1;border:1px dashed #334155;padding:10px;border-radius:8px;width:100%}
-    button{background:#1d4ed8;color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
-    button.secondary{background:#334155}
-    .hint{font-size:12px;color:#94a3b8}
-    .row{display:flex;gap:8px}
-    .token{min-width:320px}
-    pre{background:#0b122a;padding:12px;border-radius:8px;border:1px solid #1f2937;max-height:260px;overflow:auto}
-  </style>
+  <link rel="stylesheet" href="./styles/app.css">
 </head>
 <body>
   <header>
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <h1>People Analytics - Análise Comparativa</h1>
-      <div class="tabs">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <h1 style="margin:0;font-size:18px">People Analytics - Análise Comparativa</h1>
+      <div style="display:flex;gap:8px">
         <div class="tab active" id="tab-dashboard">Dashboard</div>
         <div class="tab" id="tab-upload">Importar CSV</div>
         <div class="tab" id="tab-wizard">Wizard</div>
@@ -43,185 +18,230 @@
     </div>
   </header>
   <div class="container">
-    <div id="view-dashboard">
+    <div id="toast" class="toast"></div>
+
+    <section id="view-dashboard">
       <div class="grid">
-        <div class="card col-3"><div class="kpi" id="kpi-total">-</div><div class="kpi-sub">Total de Respostas</div></div>
-        <div class="card col-3"><div class="kpi" id="kpi-exits">-</div><div class="kpi-sub">Entrevistas de Desligamento</div></div>
-        <div class="card col-3"><div class="kpi" id="kpi-actives">-</div><div class="kpi-sub">Pesquisas de Clima</div></div>
-        <div class="card col-3"><div class="kpi" id="kpi-gap">-</div><div class="kpi-sub">Gap Geral (Satisfação)</div></div>
-        <div class="card col-12">
-          <div class="section-title"><h3>Comparação por Categoria</h3>
-            <div class="row">
-              <input id="quarter" value="2025-Q3" style="padding:8px;border-radius:8px;border:1px solid #334155;background:#0b1020;color:#e5e7eb">
-              <button onclick="refreshAll()">Atualizar</button>
+        <div class="card" style="grid-column:span 3"><div class="kpi" id="kpi-total">-</div><div class="kpi-sub">Total de Respostas</div></div>
+        <div class="card" style="grid-column:span 3"><div class="kpi" id="kpi-exits">-</div><div class="kpi-sub">Entrevistas de Desligamento</div></div>
+        <div class="card" style="grid-column:span 3"><div class="kpi" id="kpi-actives">-</div><div class="kpi-sub">Pesquisas de Clima</div></div>
+        <div class="card" style="grid-column:span 3"><div class="kpi" id="kpi-gap">-</div><div class="kpi-sub">Gap Geral (Satisfação)</div></div>
+        <div class="card" style="grid-column:span 12">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0">Comparação por Categoria</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="input" id="quarter" value="2025-Q3" aria-label="Trimestre">
+              <button class="btn" id="btnRefresh" onclick="refreshAll()">Atualizar</button>
             </div>
           </div>
+          <div id="chartSkeleton" class="skeleton" style="height:220px;margin-bottom:8px;display:none"></div>
           <canvas id="barChart" height="80"></canvas>
           <div class="hint">Dica: passe o mouse nas barras para ver valores</div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div id="view-upload" style="display:none">
-      <div class="card col-12">
+    <section id="view-upload" style="display:none">
+      <div class="card">
         <h3>Importar CSVs</h3>
         <p class="hint">Selecione o trimestre e faça upload dos arquivos CSV conforme o tipo de coleta.</p>
-        <div class="row" style="margin-bottom:12px">
-          <label class="hint">Trimestre:</label>
-          <input id="quarterUpload" value="2025-Q3" style="padding:8px;border-radius:8px;border:1px solid #334155;background:#0b1020;color:#e5e7eb">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+          <label class="hint" for="quarterUpload">Trimestre:</label>
+          <input class="input" id="quarterUpload" value="2025-Q3">
         </div>
         <div class="grid">
-          <div class="card col-6">
+          <div class="card" style="grid-column:span 6">
             <h4>Entrevistas de Desligamento (Grupo 0)</h4>
-            <div class="upload">
-              <input type="file" id="fileExit" accept=".csv">
-              <button onclick="uploadExit()">Enviar</button>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="file" type="file" id="fileExit" accept=".csv" aria-label="CSV de desligamento">
+              <button class="btn" id="btnUploadExit" onclick="uploadExit()"><span>Enviar</span><span class="hint" id="upExitLoad" style="display:none"> ⏳</span></button>
             </div>
             <div class="hint">Campos obrigatórios: sede,cargo,age_range,tenure_months, employee_id,tipo_desligamento,data_admissao,data_desligamento,faltas_6m + 25 questões Likert (satisfacao_q1..ambiente_q25)</div>
-            <div id="exitMsg" class="hint"></div>
+            <div id="exitMsg" class="hint" role="status"></div>
           </div>
-          <div class="card col-6">
+          <div class="card" style="grid-column:span 6">
             <h4>Pesquisa de Clima (Grupo 1 - Anônima)</h4>
-            <div class="upload">
-              <input type="file" id="fileClimate" accept=".csv">
-              <button onclick="uploadClimate()">Enviar</button>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="file" type="file" id="fileClimate" accept=".csv" aria-label="CSV de clima">
+              <button class="btn" id="btnUploadClimate" onclick="uploadClimate()"><span>Enviar</span><span class="hint" id="upClimateLoad" style="display:none"> ⏳</span></button>
             </div>
             <div class="hint">Campos obrigatórios: sede,cargo,age_range,tenure_months + 25 questões Likert (satisfacao_q1..ambiente_q25)</div>
-            <div id="climateMsg" class="hint"></div>
+            <div id="climateMsg" class="hint" role="status"></div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div id="view-wizard" style="display:none">
-      <div class="card col-12">
+    <section id="view-wizard" style="display:none">
+      <div class="card">
         <h3>Importar CSVs (Wizard 3 passos)</h3>
-        <ol>
+        <ol class="hint">
           <li>Validação (Dry-run)</li>
           <li>Importação para Staging</li>
           <li>Commit para Produção</li>
         </ol>
-        <div class="row" style="gap:12px;align-items:center;margin-bottom:8px">
-          <label>Trimestre:</label>
-          <input id="wizQuarter" value="2025-Q3" style="padding:8px;border-radius:8px;border:1px solid #334155;background:#0b1020;color:#e5e7eb">
-          <select id="wizType" style="padding:8px;border-radius:8px;border:1px solid #334155;background:#0b1020;color:#e5e7eb">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+          <label for="wizQuarter">Trimestre:</label>
+          <input class="input" id="wizQuarter" value="2025-Q3">
+          <select class="input" id="wizType">
             <option value="exit">Desligamento</option>
             <option value="climate">Clima</option>
           </select>
-          <input type="file" id="wizFile" accept=".csv">
+          <input class="file" type="file" id="wizFile" accept=".csv">
         </div>
-        <div class="row" style="gap:12px;align-items:center;margin-bottom:8px">
-          <input class="token" id="wizToken" placeholder="X-API-Token (ANALYST/ADMIN)" style="padding:8px;border-radius:8px;border:1px solid #334155;background:#0b1020;color:#e5e7eb">
-          <button onclick="wizValidate()">1) Validar</button>
-          <button class="secondary" onclick="wizImport()">2) Importar p/ Staging</button>
-          <button class="secondary" onclick="wizCommit()">3) Commit</button>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+          <input class="input token" id="wizToken" placeholder="X-API-Token (ANALYST/ADMIN)">
+          <button class="btn" id="btnValidate" onclick="wizValidate()"><span>1) Validar</span><span class="hint" id="valLoad" style="display:none"> ⏳</span></button>
+          <button class="btn secondary" id="btnStage" onclick="wizImport()"><span>2) Importar p/ Staging</span><span class="hint" id="impLoad" style="display:none"> ⏳</span></button>
+          <button class="btn secondary" id="btnCommit" onclick="wizCommit()"><span>3) Commit</span><span class="hint" id="comLoad" style="display:none"> ⏳</span></button>
         </div>
-        <pre id="wizReport" class="hint"></pre>
+        <pre id="wizReport" class="report" aria-live="polite"></pre>
       </div>
-    </div>
+    </section>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const apiBase = 'http://localhost:8000';
     let chart;
 
+    function toast(msg, type='info'){
+      const t = document.getElementById('toast');
+      t.style.display = 'block';
+      t.textContent = msg;
+      setTimeout(()=>{ t.style.display = 'none'; }, 3500);
+    }
+
     function switchTab(tab){
-      document.getElementById('tab-dashboard').classList.remove('active');
-      document.getElementById('tab-upload').classList.remove('active');
-      document.getElementById('tab-wizard').classList.remove('active');
-      document.getElementById('view-dashboard').style.display = 'none';
-      document.getElementById('view-upload').style.display = 'none';
-      document.getElementById('view-wizard').style.display = 'none';
-      if(tab==='dashboard'){
-        document.getElementById('tab-dashboard').classList.add('active');
-        document.getElementById('view-dashboard').style.display = 'block';
-      }else if(tab==='upload'){
-        document.getElementById('tab-upload').classList.add('active');
-        document.getElementById('view-upload').style.display = 'block';
-      }else{
-        document.getElementById('tab-wizard').classList.add('active');
-        document.getElementById('view-wizard').style.display = 'block';
-      }
+      ['dashboard','upload','wizard'].forEach(x=>{
+        document.getElementById(`tab-${x}`).classList.remove('active');
+        document.getElementById(`view-${x}`).style.display = 'none';
+      });
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      document.getElementById(`view-${tab}`).style.display = 'block';
     }
     document.getElementById('tab-dashboard').onclick = ()=>switchTab('dashboard');
     document.getElementById('tab-upload').onclick = ()=>switchTab('upload');
     document.getElementById('tab-wizard').onclick = ()=>switchTab('wizard');
 
+    async function withLoading(btnId, loadId, fn){
+      const btn = document.getElementById(btnId); const load = document.getElementById(loadId);
+      btn.disabled = true; load.style.display = 'inline';
+      try{ return await fn(); } finally { btn.disabled = false; load.style.display = 'none'; }
+    }
+
+    function validateLocalFile(file){
+      if(!file) return 'Selecione um arquivo CSV';
+      if(!file.name.endsWith('.csv')) return 'Arquivo deve ser .csv';
+      if(file.size > 10*1024*1024) return 'Arquivo excede 10MB';
+      return null;
+    }
+
     async function loadSummary(){
       const q = document.getElementById('quarter').value;
-      const res = await fetch(`${apiBase}/quarterly-summary/${q}`);
-      const j = await res.json();
-      document.getElementById('kpi-total').innerText = j.total_responses ?? '-';
-      document.getElementById('kpi-exits').innerText = j.exit_interviews ?? '-';
-      document.getElementById('kpi-actives').innerText = j.climate_surveys ?? '-';
-      document.getElementById('kpi-gap').innerText = j.overall_satisfaction_gap ?? '-';
+      try{
+        const res = await fetch(`${apiBase}/quarterly-summary/${q}`);
+        const j = await res.json();
+        document.getElementById('kpi-total').innerText = j.total_responses ?? '-';
+        document.getElementById('kpi-exits').innerText = j.exit_interviews ?? '-';
+        document.getElementById('kpi-actives').innerText = j.climate_surveys ?? '-';
+        document.getElementById('kpi-gap').innerText = j.overall_satisfaction_gap ?? '-';
+      }catch(e){ toast('Falha ao carregar KPIs'); }
     }
+
     async function loadComparative(){
       const q = document.getElementById('quarter').value;
-      const res = await fetch(`${apiBase}/comparative-analysis`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quarter:q})});
-      const data = await res.json();
-      const ctx = document.getElementById('barChart');
-      const labels = data.map(d=>d.category.toUpperCase());
-      const g0 = data.map(d=>d.group0_mean);
-      const g1 = data.map(d=>d.group1_mean);
-      if(chart) chart.destroy();
-      chart = new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Desligados',data:g0,backgroundColor:'rgba(239,68,68,0.7)'},{label:'Ativos',data:g1,backgroundColor:'rgba(34,197,94,0.7)'}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:5}}}});
+      document.getElementById('chartSkeleton').style.display = 'block';
+      try{
+        const res = await fetch(`${apiBase}/comparative-analysis`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quarter:q})});
+        const data = await res.json();
+        const ctx = document.getElementById('barChart');
+        const labels = data.map(d=>d.category.toUpperCase());
+        const g0 = data.map(d=>d.group0_mean);
+        const g1 = data.map(d=>d.group1_mean);
+        if(chart) chart.destroy();
+        chart = new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Desligados',data:g0,backgroundColor:'rgba(239,68,68,0.7)'},{label:'Ativos',data:g1,backgroundColor:'rgba(34,197,94,0.7)'}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:5}}}});
+      }catch(e){ toast('Falha ao carregar gráfico'); }
+      finally{ document.getElementById('chartSkeleton').style.display = 'none'; }
     }
-    async function refreshAll(){ await loadSummary(); await loadComparative(); }
+    async function refreshAll(){
+      await withLoading('btnRefresh','chartSkeleton', async ()=>{
+        await loadSummary(); await loadComparative();
+      });
+    }
+
+    function formatValidation(j){
+      if(j.rows_error===0) return '✅ Arquivo válido. Linhas OK: '+j.rows_ok;
+      const lines = (j.errors||[]).slice(0,5).map(e=>`• Linha ${e.row}, col "${e.col}": ${e.msg}`).join('\n');
+      return `❌ ${j.rows_error} linha(s) com erro. Exemplos:\n${lines}`;
+    }
 
     async function wizValidate(){
       const q = document.getElementById('wizQuarter').value;
       const t = document.getElementById('wizType').value;
       const f = document.getElementById('wizFile').files[0];
       const tok = document.getElementById('wizToken').value;
-      if(!f){ document.getElementById('wizReport').innerText='Selecione um CSV'; return; }
-      const fd = new FormData(); fd.append('file', f);
-      const res = await fetch(`${apiBase}/imports/validate?quarter=${encodeURIComponent(q)}&type=${t}`,{method:'POST',headers:{'X-API-Token': tok},body:fd});
-      const j = await res.json();
-      document.getElementById('wizReport').innerText = JSON.stringify(j,null,2);
+      const err = validateLocalFile(f); if(err){ toast(err); return; }
+      await withLoading('btnValidate','valLoad', async ()=>{
+        const fd = new FormData(); fd.append('file', f);
+        const res = await fetch(`${apiBase}/imports/validate?quarter=${encodeURIComponent(q)}&type=${t}`,{method:'POST',headers:{'X-API-Token': tok},body:fd});
+        const j = await res.json();
+        document.getElementById('wizReport').textContent = formatValidation(j);
+      });
     }
+
     async function wizImport(){
       const q = document.getElementById('wizQuarter').value;
       const t = document.getElementById('wizType').value;
       const f = document.getElementById('wizFile').files[0];
       const tok = document.getElementById('wizToken').value;
-      if(!f){ document.getElementById('wizReport').innerText='Selecione um CSV'; return; }
-      const fd = new FormData(); fd.append('file', f);
-      const res = await fetch(`${apiBase}/imports/staging/import?quarter=${encodeURIComponent(q)}&type=${t}`,{method:'POST',headers:{'X-API-Token': tok},body:fd});
-      const j = await res.json();
-      document.getElementById('wizReport').innerText = JSON.stringify(j,null,2);
-    }
-    async function wizCommit(){
-      const tok = document.getElementById('wizToken').value;
-      const res = await fetch(`${apiBase}/imports/staging/commit`,{method:'POST',headers:{'X-API-Token': tok}});
-      const j = await res.json();
-      document.getElementById('wizReport').innerText = JSON.stringify(j,null,2);
+      const err = validateLocalFile(f); if(err){ toast(err); return; }
+      await withLoading('btnStage','impLoad', async ()=>{
+        const fd = new FormData(); fd.append('file', f);
+        const res = await fetch(`${apiBase}/imports/staging/import?quarter=${encodeURIComponent(q)}&type=${t}`,{method:'POST',headers:{'X-API-Token': tok},body:fd});
+        const j = await res.json();
+        if(j.status==='staged'){ toast('Arquivo enviado ao staging'); }
+        document.getElementById('wizReport').textContent = JSON.stringify(j,null,2);
+      });
     }
 
-    // Upload simples (antigo)
+    async function wizCommit(){
+      const tok = document.getElementById('wizToken').value;
+      await withLoading('btnCommit','comLoad', async ()=>{
+        const res = await fetch(`${apiBase}/imports/staging/commit`,{method:'POST',headers:{'X-API-Token': tok}});
+        const j = await res.json();
+        if(j.status==='committed'){ toast('Commit realizado com sucesso'); }
+        document.getElementById('wizReport').textContent = JSON.stringify(j,null,2);
+      });
+    }
+
     async function uploadExit(){
       const file = document.getElementById('fileExit').files[0];
       const q = document.getElementById('quarterUpload').value;
-      if(!file){ document.getElementById('exitMsg').innerText='Selecione um arquivo CSV'; return; }
-      const fd = new FormData(); fd.append('file', file);
-      const res = await fetch(`${apiBase}/upload/exit-interviews?quarter=${encodeURIComponent(q)}`,{method:'POST',body:fd});
-      const j = await res.json();
-      document.getElementById('exitMsg').innerText = j.message || JSON.stringify(j);
+      const err = validateLocalFile(file); if(err){ toast(err); return; }
+      document.getElementById('upExitLoad').style.display='inline';
+      try{
+        const fd = new FormData(); fd.append('file', file);
+        const res = await fetch(`${apiBase}/upload/exit-interviews?quarter=${encodeURIComponent(q)}`,{method:'POST',body:fd});
+        const j = await res.json();
+        document.getElementById('exitMsg').textContent = j.message || JSON.stringify(j);
+        toast('Upload de desligamento enviado');
+      }catch(e){ toast('Falha no upload de desligamento'); }
+      finally{ document.getElementById('upExitLoad').style.display='none'; }
     }
+
     async function uploadClimate(){
       const file = document.getElementById('fileClimate').files[0];
       const q = document.getElementById('quarterUpload').value;
-      if(!file){ document.getElementById('climateMsg').innerText='Selecione um arquivo CSV'; return; }
-      const fd = new FormData(); fd.append('file', file);
-      const res = await fetch(`${apiBase}/upload/climate-survey?quarter=${encodeURIComponent(q)}`,{method:'POST',body:fd});
-      const j = await res.json();
-      document.getElementById('climateMsg').innerText = j.message || JSON.stringify(j);
+      const err = validateLocalFile(file); if(err){ toast(err); return; }
+      document.getElementById('upClimateLoad').style.display='inline';
+      try{
+        const fd = new FormData(); fd.append('file', file);
+        const res = await fetch(`${apiBase}/upload/climate-survey?quarter=${encodeURIComponent(q)}`,{method:'POST',body:fd});
+        const j = await res.json();
+        document.getElementById('climateMsg').textContent = j.message || JSON.stringify(j);
+        toast('Upload de clima enviado');
+      }catch(e){ toast('Falha no upload de clima'); }
+      finally{ document.getElementById('upClimateLoad').style.display='none'; }
     }
-
-    // Tabs
-    document.getElementById('tab-dashboard').onclick = ()=>switchTab('dashboard');
-    document.getElementById('tab-upload').onclick = ()=>switchTab('upload');
-    document.getElementById('tab-wizard').onclick = ()=>switchTab('wizard');
 
     refreshAll();
   </script>

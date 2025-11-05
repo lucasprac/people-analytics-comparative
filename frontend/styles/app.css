@@ -1,0 +1,22 @@
+:root{--space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--radius:12px;--color-bg:#0b1020;--color-surface:#0f172a;--color-border:#1f2937;--color-text:#e5e7eb;--color-muted:#94a3b8;--color-primary:#1d4ed8;--color-success:#10b981;--color-error:#ef4444;--color-warn:#f59e0b}
+*{box-sizing:border-box}
+body{font-family:Inter,Arial,Helvetica,sans-serif;margin:0;background:var(--color-bg);color:var(--color-text)}
+header{padding:16px 24px;background:var(--color-surface);border-bottom:1px solid var(--color-border);position:sticky;top:0;z-index:10}
+.container{padding:24px;max-width:1200px;margin:0 auto}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);padding:16px}
+.kpi{font-size:28px;font-weight:800}
+.kpi-sub{font-size:12px;color:var(--color-muted)}
+.tab{padding:8px 12px;border:1px solid var(--color-border);border-radius:999px;cursor:pointer;color:#cbd5e1;transition:all .2s}
+.tab.active{background:var(--color-primary);border-color:var(--color-primary);color:white}
+.btn{background:var(--color-primary);color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;transition:transform .15s}
+.btn.secondary{background:#334155}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.input,select,.file{padding:8px;border-radius:8px;border:1px solid var(--color-border);background:var(--color-bg);color:var(--color-text)}
+.hint{font-size:12px;color:var(--color-muted)}
+pre.report{background:#0b122a;padding:12px;border-radius:8px;border:1px solid var(--color-border);max-height:280px;overflow:auto}
+.toast{position:fixed;right:16px;bottom:16px;background:#111827;border:1px solid var(--color-border);padding:12px 14px;border-radius:10px;display:none}
+.skeleton{background:linear-gradient(90deg,#0e152e 25%,#0f1836 37%,#0e152e 63%);border-radius:8px;background-size:400% 100%;animation:skeleton 1.4s ease infinite}
+@keyframes skeleton{0%{background-position:100% 50%}100%{background-position:0 50%}}
+@media(max-width:768px){.grid{grid-template-columns:repeat(6,1fr)}.token{min-width:unset;width:100%}}
