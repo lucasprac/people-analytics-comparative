@@ -5,74 +5,154 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>People Analytics - Análise Comparativa</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#0f172a;color:#e2e8f0}
-    header{padding:16px 24px;background:#111827;border-bottom:1px solid #1f2937}
-    h1{margin:0;font-size:20px}
-    .container{padding:24px}
+    body{font-family:Inter,Arial,Helvetica,sans-serif;margin:0;background:#0b1020;color:#e5e7eb}
+    header{padding:16px 24px;background:#0f172a;border-bottom:1px solid #1f2937;position:sticky;top:0}
+    h1{margin:0;font-size:18px}
+    .container{padding:24px;max-width:1200px;margin:0 auto}
     .grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
-    .card{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:16px}
+    .card{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:16px}
     .col-3{grid-column:span 3}
+    .col-4{grid-column:span 4}
     .col-6{grid-column:span 6}
     .col-12{grid-column:span 12}
-    .kpi{font-size:28px;font-weight:700}
-    .kpi-sub{font-size:12px;color:#9ca3af}
-    .badge{padding:4px 8px;border-radius:20px;font-size:12px;display:inline-block}
-    .ok{background:#065f46;color:#d1fae5}
-    .warn{background:#854d0e;color:#fef3c7}
-    .crit{background:#7f1d1d;color:#fee2e2}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid #1f2937;text-align:left}
-    th{color:#9ca3af}
+    .kpi{font-size:26px;font-weight:800}
+    .kpi-sub{font-size:12px;color:#94a3b8}
+    .section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .tabs{display:flex;gap:8px}
+    .tab{padding:8px 12px;border:1px solid #334155;border-radius:999px;cursor:pointer;color:#cbd5e1}
+    .tab.active{background:#1d4ed8;border-color:#1d4ed8;color:white}
+    .upload{display:flex;gap:8px;align-items:center}
+    input[type=file]{background:#0b1020;color:#cbd5e1;border:1px dashed #334155;padding:10px;border-radius:8px;width:100%}
+    button{background:#1d4ed8;color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+    button.secondary{background:#334155}
+    .hint{font-size:12px;color:#94a3b8}
+    .row{display:flex;gap:8px}
   </style>
 </head>
 <body>
-  <header><h1>People Analytics - Análise Comparativa de Grupos</h1></header>
-  <div class="container">
-    <div class="grid">
-      <div class="card col-3"><div class="kpi" id="kpi-total">-</div><div class="kpi-sub">Total de Respostas</div></div>
-      <div class="card col-3"><div class="kpi" id="kpi-exits">-</div><div class="kpi-sub">Entrevistas de Desligamento</div></div>
-      <div class="card col-3"><div class="kpi" id="kpi-actives">-</div><div class="kpi-sub">Pesquisas de Clima</div></div>
-      <div class="card col-3"><div class="kpi" id="kpi-gap">-</div><div class="kpi-sub">Gap Geral (Satisfação)</div></div>
-
-      <div class="card col-12">
-        <h3>Comparação por Categoria</h3>
-        <canvas id="barChart" height="80"></canvas>
+  <header>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h1>People Analytics - Análise Comparativa</h1>
+      <div class="tabs">
+        <div class="tab active" id="tab-dashboard">Dashboard</div>
+        <div class="tab" id="tab-upload">Importar CSV</div>
       </div>
+    </div>
+  </header>
+  <div class="container">
+    <div id="view-dashboard">
+      <div class="grid">
+        <div class="card col-3"><div class="kpi" id="kpi-total">-</div><div class="kpi-sub">Total de Respostas</div></div>
+        <div class="card col-3"><div class="kpi" id="kpi-exits">-</div><div class="kpi-sub">Entrevistas de Desligamento</div></div>
+        <div class="card col-3"><div class="kpi" id="kpi-actives">-</div><div class="kpi-sub">Pesquisas de Clima</div></div>
+        <div class="card col-3"><div class="kpi" id="kpi-gap">-</div><div class="kpi-sub">Gap Geral (Satisfação)</div></div>
+        <div class="card col-12">
+          <div class="section-title"><h3>Comparação por Categoria</h3>
+            <div class="row">
+              <input id="quarter" value="2025-Q3" style="padding:8px;border-radius:8px;border:1px solid #334155;background:#0b1020;color:#e5e7eb">
+              <button onclick="refreshAll()">Atualizar</button>
+            </div>
+          </div>
+          <canvas id="barChart" height="80"></canvas>
+          <div class="hint">Dica: passe o mouse nas barras para ver valores</div>
+        </div>
+      </div>
+    </div>
 
+    <div id="view-upload" style="display:none">
       <div class="card col-12">
-        <h3>Segmentos Mais Vulneráveis</h3>
-        <table>
-          <thead><tr><th>Segmento</th><th>Score</th><th>Nível</th><th>Ações</th></tr></thead>
-          <tbody id="segments"></tbody>
-        </table>
+        <h3>Importar CSVs</h3>
+        <p class="hint">Selecione o trimestre e faça upload dos arquivos CSV conforme o tipo de coleta.</p>
+        <div class="row" style="margin-bottom:12px">
+          <label class="hint">Trimestre:</label>
+          <input id="quarterUpload" value="2025-Q3" style="padding:8px;border-radius:8px;border:1px solid #334155;background:#0b1020;color:#e5e7eb">
+        </div>
+        <div class="grid">
+          <div class="card col-6">
+            <h4>Entrevistas de Desligamento (Grupo 0)</h4>
+            <div class="upload">
+              <input type="file" id="fileExit" accept=".csv">
+              <button onclick="uploadExit()">Enviar</button>
+            </div>
+            <div class="hint">Campos obrigatórios: sede,cargo,age_range,tenure_months, employee_id,tipo_desligamento,data_admissao,data_desligamento,faltas_6m + 25 questões Likert (satisfacao_q1..ambiente_q25)</div>
+            <div id="exitMsg" class="hint"></div>
+          </div>
+          <div class="card col-6">
+            <h4>Pesquisa de Clima (Grupo 1 - Anônima)</h4>
+            <div class="upload">
+              <input type="file" id="fileClimate" accept=".csv">
+              <button onclick="uploadClimate()">Enviar</button>
+            </div>
+            <div class="hint">Campos obrigatórios: sede,cargo,age_range,tenure_months + 25 questões Likert (satisfacao_q1..ambiente_q25)</div>
+            <div id="climateMsg" class="hint"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    const apiBase = 'http://localhost:8000';
+    let chart;
+
+    function switchTab(tab){
+      document.getElementById('tab-dashboard').classList.remove('active');
+      document.getElementById('tab-upload').classList.remove('active');
+      document.getElementById('view-dashboard').style.display = 'none';
+      document.getElementById('view-upload').style.display = 'none';
+      if(tab==='dashboard'){
+        document.getElementById('tab-dashboard').classList.add('active');
+        document.getElementById('view-dashboard').style.display = 'block';
+      }else{
+        document.getElementById('tab-upload').classList.add('active');
+        document.getElementById('view-upload').style.display = 'block';
+      }
+    }
+    document.getElementById('tab-dashboard').onclick = ()=>switchTab('dashboard');
+    document.getElementById('tab-upload').onclick = ()=>switchTab('upload');
+
     async function loadSummary(){
-      try{
-        const res = await fetch('http://localhost:8000/quarterly-summary/2025-Q3');
-        const j = await res.json();
-        document.getElementById('kpi-total').innerText = j.total_responses;
-        document.getElementById('kpi-exits').innerText = j.exit_interviews;
-        document.getElementById('kpi-actives').innerText = j.climate_surveys;
-        document.getElementById('kpi-gap').innerText = j.overall_satisfaction_gap;
-      }catch(e){ console.log(e); }
+      const q = document.getElementById('quarter').value;
+      const res = await fetch(`${apiBase}/quarterly-summary/${q}`);
+      const j = await res.json();
+      document.getElementById('kpi-total').innerText = j.total_responses ?? '-';
+      document.getElementById('kpi-exits').innerText = j.exit_interviews ?? '-';
+      document.getElementById('kpi-actives').innerText = j.climate_surveys ?? '-';
+      document.getElementById('kpi-gap').innerText = j.overall_satisfaction_gap ?? '-';
     }
     async function loadComparative(){
-      try{
-        const res = await fetch('http://localhost:8000/comparative-analysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quarter:'2025-Q3'})});
-        const data = await res.json();
-        const ctx = document.getElementById('barChart');
-        const labels = data.map(d=>d.category.toUpperCase());
-        const g0 = data.map(d=>d.group0_mean);
-        const g1 = data.map(d=>d.group1_mean);
-        new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Desligados',data:g0,backgroundColor:'rgba(239,68,68,0.7)'},{label:'Ativos',data:g1,backgroundColor:'rgba(34,197,94,0.7)'}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:5}}}});
-      }catch(e){ console.log(e); }
+      const q = document.getElementById('quarter').value;
+      const res = await fetch(`${apiBase}/comparative-analysis`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quarter:q})});
+      const data = await res.json();
+      const ctx = document.getElementById('barChart');
+      const labels = data.map(d=>d.category.toUpperCase());
+      const g0 = data.map(d=>d.group0_mean);
+      const g1 = data.map(d=>d.group1_mean);
+      if(chart) chart.destroy();
+      chart = new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Desligados',data:g0,backgroundColor:'rgba(239,68,68,0.7)'},{label:'Ativos',data:g1,backgroundColor:'rgba(34,197,94,0.7)'}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:5}}}});
     }
-    loadSummary();
-    loadComparative();
+    async function refreshAll(){ await loadSummary(); await loadComparative(); }
+
+    async function uploadExit(){
+      const file = document.getElementById('fileExit').files[0];
+      const q = document.getElementById('quarterUpload').value;
+      if(!file){ document.getElementById('exitMsg').innerText='Selecione um arquivo CSV'; return; }
+      const fd = new FormData(); fd.append('file', file);
+      const res = await fetch(`${apiBase}/upload/exit-interviews?quarter=${encodeURIComponent(q)}`,{method:'POST',body:fd});
+      const j = await res.json();
+      document.getElementById('exitMsg').innerText = j.message || JSON.stringify(j);
+    }
+    async function uploadClimate(){
+      const file = document.getElementById('fileClimate').files[0];
+      const q = document.getElementById('quarterUpload').value;
+      if(!file){ document.getElementById('climateMsg').innerText='Selecione um arquivo CSV'; return; }
+      const fd = new FormData(); fd.append('file', file);
+      const res = await fetch(`${apiBase}/upload/climate-survey?quarter=${encodeURIComponent(q)}`,{method:'POST',body:fd});
+      const j = await res.json();
+      document.getElementById('climateMsg').innerText = j.message || JSON.stringify(j);
+    }
+
+    refreshAll();
   </script>
 </body>
 </html>
