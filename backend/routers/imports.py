@@ -1,9 +1,10 @@
 import os
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 import pandas as pd
 from sqlalchemy import create_engine, text
 from typing import List, Dict, Any
 import hashlib
+from ..security.rbac import require_role, Roles
 
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres123@localhost:5432/people_analytics')
 engine = create_engine(DATABASE_URL)
@@ -24,12 +25,10 @@ LIKERT_COLS = REQUIRED_QUEST
 
 def validate_df(df: pd.DataFrame, require_exit: bool) -> Dict[str, Any]:
     errors: List[Dict[str, Any]] = []
-    # Headers
     required = REQUIRED_COMMON + REQUIRED_QUEST + (REQUIRED_EXIT if require_exit else [])
     missing = [c for c in required if c not in df.columns]
     if missing:
         return {"rows_ok": 0, "rows_error": len(df), "errors": [{"row": 0, "col": ",".join(missing), "msg": "colunas ausentes"}]}
-    # Types & ranges
     for col in LIKERT_COLS:
         if not pd.api.types.is_numeric_dtype(df[col]):
             errors.append({"row": "*", "col": col, "msg": "tipo inválido (esperado numérico)"})
@@ -47,8 +46,8 @@ def validate_df(df: pd.DataFrame, require_exit: bool) -> Dict[str, Any]:
     rows_error = len({e['row'] for e in errors if isinstance(e['row'], int)})
     return {"rows_ok": int(len(df)-rows_error), "rows_error": int(rows_error), "errors": errors[:500]}
 
-@router.post('/validate')
-async def validate_upload(quarter: str, type: str, file: UploadFile = File(...)):
+@router.post('/validate', dependencies=[Depends(require_role, use_cache=False)], name='imports_validate')
+async def validate_upload(quarter: str, type: str, file: UploadFile = File(...), role: None = Depends(lambda: require_role(Roles.ANALYST))):
     try:
         df = pd.read_csv(file.file)
     except Exception as e:
@@ -57,7 +56,7 @@ async def validate_upload(quarter: str, type: str, file: UploadFile = File(...))
     return summary
 
 @router.post('/staging/import')
-async def import_staging(quarter: str, type: str, file: UploadFile = File(...)):
+async def import_staging(quarter: str, type: str, file: UploadFile = File(...), role: None = Depends(lambda: require_role(Roles.DATA_ADMIN))):
     df = pd.read_csv(file.file)
     summary = validate_df(df, require_exit=(type=='exit'))
     if summary['rows_error']>0:
@@ -80,7 +79,7 @@ async def import_staging(quarter: str, type: str, file: UploadFile = File(...)):
     return {"status":"staged", "rows": len(df), "hash": file_hash}
 
 @router.post('/staging/commit')
-async def commit_staging():
+async def commit_staging(role: None = Depends(lambda: require_role(Roles.DATA_ADMIN))):
     with engine.begin() as conn:
         conn.execute(text("""
             INSERT INTO survey_responses
@@ -91,7 +90,7 @@ async def commit_staging():
     return {"status":"committed"}
 
 @router.delete('/staging/clear')
-async def clear_staging():
+async def clear_staging(role: None = Depends(lambda: require_role(Roles.DATA_ADMIN))):
     with engine.begin() as conn:
         conn.execute(text("TRUNCATE TABLE survey_responses_staging"))
     return {"status":"cleared"}
