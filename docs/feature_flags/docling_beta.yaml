@@ -1,0 +1,14 @@
+# Docling Integration (BETA - Hermético)
+
+status: disabled
+scope:
+  - structured_pdf_docx_extraction_only
+  - no_sentiment_analysis
+  - no_audio_processing
+feature_flag: DOCLING_ENABLED=false
+module_path: backend/services/docling_processor.py
+endpoints: none (internal only)
+notes:
+  - This module is isolated and not wired to any public endpoint.
+  - Enable by flipping env var DOCLING_ENABLED=true and adding a dedicated route.
+  - Use staging tables for extracted content to avoid contaminating production data.
