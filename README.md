@@ -1,13 +1,9 @@
 # People Analytics - Sistema de Análise Comparativa de Grupos
 
-## 🎯 Nova Metodologia
+## 🎯 Metodologia
 
 Sistema de análise comparativa entre **Grupo 0 (Desligados)** e **Grupo 1 (Ativos)** para insights trimestrais de retenção, focado em identificar grupos vulneráveis e ações preventivas.
 
-### Mudança Conceitual
-
-❌ **Antes**: Predição individual de risco de turnover  
-✅ **Agora**: Análise comparativa de grupos para insights de retenção
 
 ### Objetivos Principais
 
