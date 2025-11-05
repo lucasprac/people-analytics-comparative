@@ -1,0 +1,15 @@
+{
+  "name": "people-analytics-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "http-server -p 8080",
+    "build": "echo build placeholder"
+  },
+  "dependencies": {
+    "chart.js": "4.4.1"
+  },
+  "devDependencies": {
+    "http-server": "14.1.1"
+  }
+}
