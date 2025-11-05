@@ -28,7 +28,6 @@ class ComparativeResult(BaseModel):
     p_value: float
     significance: str
     practical_significance: str
-    recommendation_priority: int
 
 # ===================== HELPERS =====================
 CAT_MAP = {
@@ -44,9 +43,9 @@ REQUIRED_EXIT = ['employee_id','tipo_desligamento','data_admissao','data_desliga
 REQUIRED_ALL_QUESTIONS = [
     *[f'satisfacao_q{i}' for i in range(1,6)],
     *[f'recompensa_q{i}' for i in range(6,11)],
-    *[f'gestor_q{i}' for i in range(11,16)],
-    *[f'wlb_q{i}' for i in range(16,21)],
-    *[f'ambiente_q{i}' for i in range(21,26)],
+    *[f'gestor_q{i]' for i in range(11,16)],
+    *[f'wlb_q{i]' for i in range(16,21)],
+    *[f'ambiente_q{i]' for i in range(21,26)],
 ]
 
 def _validate_columns(df: pd.DataFrame, required: List[str]):
@@ -112,12 +111,11 @@ async def run_comparative_analysis(request: ComparativeAnalysisRequest):
         d = mean_diff/pooled if pooled>0 else 0
         significance = 'p<0.001' if p_val<0.001 else ('p<0.01' if p_val<0.01 else ('p<0.05' if p_val<0.05 else 'ns'))
         practical = 'LOW' if abs(d)<0.2 else ('MEDIUM' if abs(d)<0.5 else 'HIGH')
-        priority = 5 if mean_diff < -0.5 else (4 if mean_diff < -0.2 else (3 if mean_diff < 0 else (2 if mean_diff < 0.2 else 1)))
         results.append(ComparativeResult(
             quarter=request.quarter, category=category,
             group0_mean=round(g0m,2), group1_mean=round(g1m,2), mean_difference=round(mean_diff,2),
             effect_size=round(d,3), p_value=round(p_val,4), significance=significance,
-            practical_significance=practical, recommendation_priority=priority
+            practical_significance=practical
         ))
     return results
 
